@@ -1,0 +1,5 @@
+hw4_realse_dataset/
+checkpoints/
+__pycache__
+train_ckpt/
+outputs/test-1/pred_images/
