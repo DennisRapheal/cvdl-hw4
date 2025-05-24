@@ -1,4 +1,5 @@
 import os, cv2, random, torch, re, glob
+import numpy as np
 from torchvision.transforms.functional import to_tensor
 from torch.utils.data import Dataset
 from typing import List, Tuple
@@ -35,44 +36,53 @@ class PromptDataset(Dataset):
         self.is_train   = is_train
         self.flip_prob  = flip_prob if is_train else 0.0
 
-    # ------- util -------
-    def __len__(self): return len(self.de_paths)
+    def __len__(self):
+        return len(self.de_paths)
 
-    def _random_crop(self, img):
-        h, w = img.shape[:2]; p = self.patch_size
-        if h <= p or w <= p:
-            return img
+    # ---------- util ----------
+    def _paired_random_crop(self, img_de, img_cl):
+        """在降雨、乾淨圖上取同座標 patch"""
+        h, w = img_de.shape[:2]; p = self.patch_size
+        if h <= p or w <= p:      # 圖太小就直接回傳整張
+            return img_de, img_cl
         y = random.randrange(0, h - p + 1)
         x = random.randrange(0, w - p + 1)
-        return img[y:y+p, x:x+p]
+        return (img_de[y:y+p, x:x+p],
+                img_cl[y:y+p, x:x+p])
 
-    # ------- 讀取 -------
+    # ---------- load ----------
     def __getitem__(self, idx):
         de_path = self.de_paths[idx]
         cl_path = self.cl_paths[idx]
 
-        # 根據檔名取得 prompt id
-        if 'rain-' in os.path.basename(de_path):
-            prompt_id = 0
-        elif 'snow-' in os.path.basename(de_path):
-            prompt_id = 1
+        # 依檔名決定任務 id
+        fname = os.path.basename(de_path)
+        if 'rain-' in fname:
+            de_type = 0      # derain
+        elif 'snow-' in fname:
+            de_type = 1      # desnow
         else:
-            prompt_id = -1  # optional fallback, 可加 assert 檢查
+            raise ValueError(f"未知降噪類型：{fname}")
 
-        de = cv2.imread(de_path)[:, :, ::-1]  # BGR→RGB
-        cl = cv2.imread(cl_path)[:, :, ::-1]
+        de_img = cv2.imread(de_path)[:, :, ::-1]  # BGR → RGB
+        cl_img = cv2.imread(cl_path)[:, :, ::-1]
 
+        # 同步隨機翻轉
         if random.random() < self.flip_prob:
-            de, cl = de[:, ::-1, :], cl[:, ::-1, :]
+            de_img, cl_img = de_img[:, ::-1, :], cl_img[:, ::-1, :]
 
+        # 同步隨機裁切
         if self.is_train and self.patch_size:
-            de, cl = self._random_crop(de), self._random_crop(cl)
+            de_img, cl_img = self._paired_random_crop(de_img, cl_img)
 
-        de = to_tensor(de.astype('float32') / 255.)
-        cl = to_tensor(cl.astype('float32') / 255.)
-        name = os.path.basename(self.cl_paths[idx])
-        # torch.tensor(prompt_id)
-        return (name, idx), de, cl
+        # numpy → tensor, 正規化到 0~1
+        de_tensor = to_tensor(de_img.astype(np.float32) / 255.)
+        cl_tensor = to_tensor(cl_img.astype(np.float32) / 255.)
+
+        clean_name = os.path.splitext(os.path.basename(cl_path))[0]
+
+        # **回傳格式對齊官方**：list 兩元素
+        return [clean_name, de_type], de_tensor, cl_tensor
 
 
 def _numeric_sort(files):
@@ -121,12 +131,8 @@ if __name__ == '__main__':
 
     # 初始化 Dataset
     dataset = PromptDataset(de_paths, patch_size=128, is_train=True)
-
-    # 檢查前 num_samples 筆資料
-    for i in range(min(args.num_samples, len(dataset))):
-        try:
-            (name, idx), de, cl = dataset[i]
-            print(f"[{i}] {name} | degraded shape: {de.shape}, clean shape: {cl.shape}")
-        except Exception as e:
-            print(f"[ERROR @ idx={i}] {dataset.de_paths[i]}")
-            print(e)
+    for i in range(3):
+        (name, de_id), de, cl = dataset[i]
+        print(name, de_id, de.shape)
+        assert torch.allclose(de * 0 + 1, cl * 0 + 1, atol=1), "Tensor dtype 不同"
+        assert de.shape == cl.shape, "de / cl 尺寸不符"

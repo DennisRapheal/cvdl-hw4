@@ -73,7 +73,7 @@ def parse_args():
     p.add_argument("--ckpt", required=True, help="Path to .ckpt from training")
     p.add_argument("--input_dir", required=True, help="Folder with degraded images")
     p.add_argument("--output_dir", default="output_pred", help="Where to save restored images")
-    p.add_argument("--batch_size", type=int, default=1, help=">1 會自動組 batch (適合相同大小影像)")
+    p.add_argument("--batch_size", type=int, default=4, help=">1 會自動組 batch (適合相同大小影像)")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--half", action="store_true", help="Use torch.float16 during inference")
     p.add_argument("--cuda", type=int, default=0, help="CUDA device idx (‑1 使用 CPU)")

@@ -1,5 +1,5 @@
 #!/bin/bash
 python ./inference.py \
-  --ckpt ./train_ckpt/epoch=9-step=3600.ckpt \
+  --ckpt ./train_ckpt/model-3/epoch=199-step=18000.ckpt \
   --input_dir ./hw4_realse_dataset/test/degraded \
-  --output_dir ./outputs/test-1
+  --output_dir ./outputs/model-3

@@ -19,7 +19,13 @@ from options             import options as opt       # argparse 解析後的 Nam
 
 # ---------------------- LightningModule ---------------------- #
 class PromptIRModel(pl.LightningModule):
-    def __init__(self, lr=2e-4):
+    def __init__(
+        self,
+        lr: float = 2e-4,
+        warmup_epochs: int = 15,
+        max_epochs: int = 150,
+        weight_decay: float = 1e-4,
+    ):
         super().__init__()
         self.save_hyperparameters()
         self.net = PromptIR(decoder=True)
@@ -29,29 +35,53 @@ class PromptIRModel(pl.LightningModule):
         return self.net(x)
 
     # ---- train ----
-    def training_step(self, batch, _):
+    def training_step(self, batch, batch_idx):
         (_, _), de, cl = batch
         out  = self(de)
         loss = self.loss_fn(out, cl)
-        self.log("train/loss", loss, prog_bar=True)
+
+        # TensorBoard / WandB 同步
+        self.log("train/loss", loss, prog_bar=True, on_step=True, on_epoch=True)
         return loss
 
+
     # ---- val ----
-    def validation_step(self, batch, _):
+    def validation_step(self, batch, batch_idx):
         (_, _), de, cl = batch
         out  = self(de)
+
         loss = self.loss_fn(out, cl)
         psnr = calc_psnr(out, cl)
-        self.log_dict({"val/loss": loss, "val/psnr": psnr},
-                      prog_bar=True, sync_dist=True)
+
+        # sync_dist=True ⇒ 分散式自動平均
+        self.log_dict(
+            {"val/loss": loss, "val/psnr": psnr},
+            prog_bar=True,
+            sync_dist=True,
+        )
 
     # ---- opt & lr sched ----
     def configure_optimizers(self):
-        opti  = optim.AdamW(self.parameters(), lr=self.hparams.lr)
+        opt = optim.AdamW(
+            self.parameters(),
+            lr=self.hparams.lr,
+            weight_decay=self.hparams.weight_decay,
+        )
+
         sched = LinearWarmupCosineAnnealingLR(
-            opti, warmup_epochs=15, max_epochs=opt.epochs)
-        return {"optimizer": opti,
-                "lr_scheduler": {"scheduler": sched, "interval": "epoch"}}
+            optimizer=opt,
+            warmup_epochs=self.hparams.warmup_epochs,
+            max_epochs=self.trainer.max_epochs  # ← 不再依賴外部物件
+        )
+
+        return {
+            "optimizer": opt,
+            "lr_scheduler": {
+                "scheduler": sched,
+                "interval": "epoch",
+                "frequency": 1,
+            },
+        }
 
 # ---------------------- 切資料 ---------------------- #
 def build_dataloaders(opt: Namespace):
@@ -79,8 +109,8 @@ def build_dataloaders(opt: Namespace):
 
     train_ld = DataLoader(train_ds, batch_size=opt.batch_size,
                           shuffle=True,  num_workers=opt.num_workers,
-                          pin_memory=True, drop_last=True)
-    val_ld   = DataLoader(val_ds, batch_size=1,
+                          pin_memory=True)
+    val_ld   = DataLoader(val_ds, batch_size=8,
                           shuffle=False, num_workers=4, pin_memory=True)
     return train_ld, val_ld
 
@@ -107,7 +137,7 @@ def main():
         strategy=pl.strategies.DDPStrategy(find_unused_parameters=True),
         logger=logger,
         callbacks=[ckpt_cb],
-        precision="16-mixed"  # 若不想 AMP 刪掉這行
+        precision="16-mixed"
     )
     trainer.fit(model, train_ld, val_ld)
 

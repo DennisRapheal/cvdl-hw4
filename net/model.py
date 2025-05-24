@@ -263,9 +263,9 @@ class PromptIR(nn.Module):
         self.decoder = decoder
         
         if self.decoder:
-            self.prompt1 = PromptGenBlock(prompt_dim=64,prompt_len=3,prompt_size = 64,lin_dim = 96)
-            self.prompt2 = PromptGenBlock(prompt_dim=128,prompt_len=3,prompt_size = 32,lin_dim = 192)
-            self.prompt3 = PromptGenBlock(prompt_dim=320,prompt_len=3,prompt_size = 16,lin_dim = 384)
+            self.prompt1 = PromptGenBlock(prompt_dim=64,prompt_len=2,prompt_size = 64,lin_dim = 96)
+            self.prompt2 = PromptGenBlock(prompt_dim=128,prompt_len=2,prompt_size = 32,lin_dim = 192)
+            self.prompt3 = PromptGenBlock(prompt_dim=320,prompt_len=2,prompt_size = 16,lin_dim = 384)
         
         
         self.chnl_reduce1 = nn.Conv2d(64,64,kernel_size=1,bias=bias)
@@ -319,7 +319,7 @@ class PromptIR(nn.Module):
                     
         self.output = nn.Conv2d(int(dim*2**1), out_channels, kernel_size=3, stride=1, padding=1, bias=bias)
 
-    def forward(self, inp_img, noise_emb = None):
+    def forward(self, inp_img,noise_emb = None):
 
         inp_enc_level1 = self.patch_embed(inp_img)
 
