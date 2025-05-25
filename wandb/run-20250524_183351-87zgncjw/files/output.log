@@ -1,0 +1,17 @@
+/home/ccwang/.local/lib/python3.10/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:654: Checkpoint directory /20TB_06/dennislin0906/cvdl-hw4/train_ckpt exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+
+  | Name    | Type     | Params | Mode
+---------------------------------------------
+0 | net     | PromptIR | 35.6 M | train
+1 | loss_fn | L1Loss   | 0      | train
+---------------------------------------------
+35.6 M    Trainable params
+0         Non-trainable params
+35.6 M    Total params
+142.369   Total estimated model params size (MB)
+668       Modules in train mode
+0         Modules in eval mode
+Epoch 0:   3%|█████▋                                                                                                                                                                                         | 3/100 [00:03<01:50,  0.88it/s, v_num=ncjw, train/loss_step=0.212]
+
+Detected KeyboardInterrupt, attempting graceful shutdown ...

@@ -97,7 +97,7 @@ def build_dataloaders(opt: Namespace):
 
     v_len = int(len(idx) * 0.1)
     val_idx = set(idx[:v_len])
-    train_paths = [all_de[i] for i in idx[v_len:]]
+    train_paths = [all_de[i] for i in idx]
     val_paths   = [all_de[i] for i in val_idx]
 
     train_ds = PromptDataset(train_paths,
@@ -127,7 +127,7 @@ def main():
     # ----- model & ckpt -----
     model  = PromptIRModel(lr=opt.lr)
     ckpt_cb = ModelCheckpoint(dirpath=opt.ckpt_dir,
-                              save_top_k=-1, every_n_epochs=1)
+                              mode="max", save_top_k=1, every_n_epochs=1)
 
     # ----- trainer -----
     trainer = pl.Trainer(

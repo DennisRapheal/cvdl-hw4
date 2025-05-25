@@ -1,0 +1,40 @@
+/home/ccwang/.local/lib/python3.10/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:654: Checkpoint directory /20TB_06/dennislin0906/cvdl-hw4/train_ckpt/fold0 exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+
+  | Name    | Type     | Params | Mode
+---------------------------------------------
+0 | net     | PromptIR | 35.6 M | train
+1 | loss_fn | L1Loss   | 0      | train
+---------------------------------------------
+35.6 M    Trainable params
+0         Non-trainable params
+35.6 M    Total params
+142.369   Total estimated model params size (MB)
+668       Modules in train mode
+0         Modules in eval mode
+Epoch 119: 100%|██████████████████████████| 50/50 [00:33<00:00,  1.49it/s, v_num=ywh8, train/loss_step=0.0316, val/loss=0.0297, val/psnr=27.30, train/loss_epoch=0.0295]                                            
+✔ Fold 0 done. Best ckpt saved to /20TB_06/dennislin0906/cvdl-hw4/train_ckpt/fold0/epochepoch=116-psnrval/psnr=27.272.ckpt                                                                                          
+/home/ccwang/.local/lib/python3.10/site-packages/lightning/pytorch/trainer/connectors/logger_connector/result.py:431: It is recommended to use `self.log('train/loss', ..., sync_dist=True)` when logging on epoch level in distributed setting to accumulate the metric across devices.
+`Trainer.fit` stopped: `max_epochs=120` reached.
+Using 16bit Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+=== Start training Fold 1 ===
+/home/ccwang/.local/lib/python3.10/site-packages/lightning/pytorch/loggers/wandb.py:396: There is a wandb run already in progress and newly created instances of `WandbLogger` will reuse this run. If this is not desired, call `wandb.finish()` before instantiating `WandbLogger`.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+
+  | Name    | Type     | Params | Mode
+---------------------------------------------
+0 | net     | PromptIR | 35.6 M | train
+1 | loss_fn | L1Loss   | 0      | train
+---------------------------------------------
+35.6 M    Trainable params
+0         Non-trainable params
+35.6 M    Total params
+142.369   Total estimated model params size (MB)
+668       Modules in train mode
+0         Modules in eval mode
+Epoch 119: 100%|██████████████████████████| 50/50 [00:55<00:00,  0.90it/s, v_num=ywh8, train/loss_step=0.0309, val/loss=0.0294, val/psnr=27.30, train/loss_epoch=0.0301]
+✔ Fold 1 done. Best ckpt saved to /20TB_06/dennislin0906/cvdl-hw4/train_ckpt/fold1/epochepoch=112-psnrval/psnr=27.337.ckpt                                              
+`Trainer.fit` stopped: `max_epochs=120` reached.
