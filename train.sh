@@ -22,15 +22,15 @@ clear
 #   --epochs 200 \
 #   --ckpt_dir train_ckpt/model-3
 
-export WANDB_KEY_ALT="c9e88b4e39eafd7eb1a8cc3b1f5daeeaeb61188e"
+# export WANDB_KEY_ALT="c9e88b4e39eafd7eb1a8cc3b1f5daeeaeb61188e"
 
 # 單次執行
-WANDB_API_KEY=$WANDB_KEY_ALT \
+# WANDB_API_KEY=$WANDB_KEY_ALT \
 # WANDB_ENTITY=my_alt_entity \   # 如果想把 run 放到其他 entity，可加這行
-python train.py
+# python train.py
 
-python train.py \
+python train_.py \
   --batch_size 4 \
   --num_gpus 4 \
-  --epochs 300 \
-  --ckpt_dir train_ckpt/model-5
+  --epochs 500 \
+  --ckpt_dir train_ckpt/model-6
