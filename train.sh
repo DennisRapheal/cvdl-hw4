@@ -29,8 +29,16 @@ clear
 # WANDB_ENTITY=my_alt_entity \   # 如果想把 run 放到其他 entity，可加這行
 # python train.py
 
-python train_.py \
+# prompt_len = 10 , version 1 log
+# python train_.py \
+#   --batch_size 4 \
+#   --num_gpus 4 \
+#   --epochs 300 \
+#   --ckpt_dir train_ckpt/model-8
+
+# prompt_gen block , version 2 log
+CUDA_VISIBLE_DEVICES=5,6,7,1 python train_.py \
   --batch_size 4 \
   --num_gpus 4 \
-  --epochs 500 \
-  --ckpt_dir train_ckpt/model-6
+  --epochs 400 \
+  --ckpt_dir train_ckpt/model-9
