@@ -216,22 +216,27 @@ class OverlapPatchEmbed(nn.Module):
 ##########################################################################
 ##---------- Prompt Gen Module -----------------------
 class PromptGenBlock(nn.Module):
-    def __init__(self,prompt_dim=128,prompt_len=5,prompt_size = 96,lin_dim = 192):
-        super(PromptGenBlock,self).__init__()
-        self.prompt_param = nn.Parameter(torch.rand(1,prompt_len,prompt_dim,prompt_size,prompt_size))
-        self.linear_layer = nn.Linear(lin_dim,prompt_len)
-        self.conv3x3 = nn.Conv2d(prompt_dim,prompt_dim,kernel_size=3,stride=1,padding=1,bias=False)
-        
+    def __init__(self, prompt_dim=128, prompt_len=5, prompt_size=96, lin_dim=192):
+        super(PromptGenBlock, self).__init__()
+        self.prompt_param = nn.Parameter(torch.rand(1, prompt_len, prompt_dim, prompt_size, prompt_size))
+        self.linear_layer = nn.Linear(lin_dim, prompt_len)
+        self.conv3x3 = nn.Conv2d(prompt_dim, prompt_dim, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv5x5 = nn.Conv2d(prompt_dim, prompt_dim, kernel_size=5, stride=1, padding=2, bias=False)
+        self.conv7x7 = nn.Conv2d(prompt_dim, prompt_dim, kernel_size=7, stride=1, padding=3, bias=False)
+        self.attn = nn.Conv2d(prompt_dim * 3, prompt_dim, kernel_size=1, bias=False)  # Aggregate multi-scale features
 
-    def forward(self,x):
-        B,C,H,W = x.shape
-        emb = x.mean(dim=(-2,-1))
-        prompt_weights = F.softmax(self.linear_layer(emb),dim=1)
-        prompt = prompt_weights.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) * self.prompt_param.unsqueeze(0).repeat(B,1,1,1,1,1).squeeze(1)
-        prompt = torch.sum(prompt,dim=1)
-        prompt = F.interpolate(prompt,(H,W),mode="bilinear")
-        prompt = self.conv3x3(prompt)
-
+    def forward(self, x):
+        B, C, H, W = x.shape
+        emb = x.mean(dim=(-2, -1))
+        prompt_weights = F.softmax(self.linear_layer(emb), dim=1)
+        prompt = prompt_weights.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) * self.prompt_param.unsqueeze(0).repeat(B, 1, 1, 1, 1, 1).squeeze(1)
+        prompt = torch.sum(prompt, dim=1)
+        prompt = F.interpolate(prompt, (H, W), mode="bilinear")
+        # Multi-scale processing
+        prompt3 = self.conv3x3(prompt)
+        prompt5 = self.conv5x5(prompt)
+        prompt7 = self.conv7x7(prompt)
+        prompt = self.attn(torch.cat([prompt3, prompt5, prompt7], dim=1))
         return prompt
 
 
@@ -263,9 +268,9 @@ class PromptIR(nn.Module):
         self.decoder = decoder
         
         if self.decoder:
-            self.prompt1 = PromptGenBlock(prompt_dim=64,prompt_len=5,prompt_size = 64,lin_dim = 96)
-            self.prompt2 = PromptGenBlock(prompt_dim=128,prompt_len=5,prompt_size = 32,lin_dim = 192)
-            self.prompt3 = PromptGenBlock(prompt_dim=320,prompt_len=5,prompt_size = 16,lin_dim = 384)
+            self.prompt1 = PromptGenBlock(prompt_dim=64,prompt_len=10,prompt_size = 64,lin_dim = 96)
+            self.prompt2 = PromptGenBlock(prompt_dim=128,prompt_len=10,prompt_size = 32,lin_dim = 192)
+            self.prompt3 = PromptGenBlock(prompt_dim=320,prompt_len=10,prompt_size = 16,lin_dim = 384)
         
         
         self.chnl_reduce1 = nn.Conv2d(64,64,kernel_size=1,bias=bias)

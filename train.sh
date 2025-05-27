@@ -37,8 +37,8 @@ clear
 #   --ckpt_dir train_ckpt/model-8
 
 # prompt_gen block , version 2 log
-CUDA_VISIBLE_DEVICES=5,6,7,1 python train_.py \
+CUDA_VISIBLE_DEVICES=5,6,0,3 python train_.py \
   --batch_size 4 \
   --num_gpus 4 \
-  --epochs 400 \
-  --ckpt_dir train_ckpt/model-9
+  --epochs 800 \
+  --ckpt_dir train_ckpt/model-10

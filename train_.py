@@ -124,6 +124,13 @@ def main():
     model = PromptIRModel(lr=opt.lr)
     ckpt_cb = ModelCheckpoint(dirpath=opt.ckpt_dir,
                               mode="max", save_top_k=1, every_n_epochs=1)
+    # 每 100 epoch 強制儲存一次（不管好壞）
+    ckpt_cb_periodic = ModelCheckpoint(
+        dirpath=opt.ckpt_dir,
+        filename="periodic-{epoch:04d}",
+        save_top_k=-1,  # 儲存所有符合條件的 checkpoint
+        every_n_epochs=100  # 每 100 個 epoch 存一次
+    )
 
     # ----- trainer -----
     trainer = pl.Trainer(
@@ -132,7 +139,7 @@ def main():
         devices=opt.num_gpus,
         strategy=pl.strategies.DDPStrategy(find_unused_parameters=True),
         logger=logger,
-        callbacks=[ckpt_cb],
+        callbacks=[ckpt_cb, ckpt_cb_periodic],
         precision="16-mixed"
     )
     trainer.fit(model, train_ld, val_ld)

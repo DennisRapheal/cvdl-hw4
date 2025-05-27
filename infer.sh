@@ -1,8 +1,8 @@
 #!/bin/bash
 python ./inference.py \
-  --ckpt ./train_ckpt/model-6/epoch=499-step=100000.ckpt \
+  --ckpt ./train_ckpt/model-10/epoch=210-step=42200.ckpt \
   --input_dir ./hw4_realse_dataset/test/degraded \
-  --output_dir ./outputs/ep500
+  --output_dir ./outputs/ep100
 
 # python ./inference.py \
 #   --ckpt ./train_ckpt/model-9/epoch=399-step=80000.ckpt \
