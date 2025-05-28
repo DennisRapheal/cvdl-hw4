@@ -40,5 +40,5 @@ clear
 CUDA_VISIBLE_DEVICES=5,6,0,3 python train_.py \
   --batch_size 4 \
   --num_gpus 4 \
-  --epochs 800 \
-  --ckpt_dir train_ckpt/model-10
+  --epochs 2 \
+  --ckpt_dir train_ckpt/model-11
